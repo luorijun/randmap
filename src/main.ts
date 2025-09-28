@@ -13,16 +13,13 @@ await app.init({
 el.appendChild(app.canvas)
 
 // noise
-
 const width = app.canvas.width
 const height = app.canvas.height
-
 const noise: Api = wrap(new Worker(new URL('./workers/noise.ts', import.meta.url), { type: 'module' }))
 await noise.set({ width, height })
 
 // show
 const coord = { x: 0, y: 0 }
-
 const data = await noise.gen(coord)
 
 const texture = Texture.from({
