@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vite + TS</title>
+</head>
+
+<body>
+  <div id="root" class="w-screen h-screen grid grid-cols-[256px_1fr] grid-rows-[64px_1fr]">
+
+    <!-- 随机参数 -->
+    <div id="params" class="col-start-1 row-start-1 row-span-2"></div>
+
+    <!-- 渲染视图 -->
+    <div id="view" class="col-start-2 row-start-1"></div>
+
+    <!-- 绘制区 -->
+    <div id="map" class="col-start-2 row-start-2"></div>
+  </div>
+
+  <script type="module" src="/src/main.ts"></script>
+</body>
+
+</html>
