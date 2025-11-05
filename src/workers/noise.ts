@@ -57,5 +57,6 @@ const api = {
   set,
   gen,
 }
+
 expose(api)
-export type Api = typeof api
+export type NoiseWorker = typeof api
