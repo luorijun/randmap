@@ -1,9 +1,9 @@
 import '@/style.css'
-import { Application, Graphics, Sprite, Texture } from 'pixi.js'
+import { Application, Sprite, Texture } from 'pixi.js'
 import { wrap } from 'comlink'
 import type { NoiseWorker } from './workers/noise'
 
-// app
+// init
 const el = document.querySelector('#map') as HTMLDivElement
 const debug = el.querySelector('#debug') as HTMLSpanElement
 
@@ -14,34 +14,32 @@ await app.init({
 })
 el.appendChild(app.canvas)
 
-// noise
-const width = app.canvas.width
-const height = app.canvas.height
-const noise = wrap<NoiseWorker>(new Worker(new URL('./workers/noise.ts', import.meta.url), { type: 'module' }))
-await noise.set({ width, height })
-
-// show
+// start
 const chunk = { x: 0, y: 0 }
-const data = await noise.gen(chunk)
+const size = 64
+const maxLevel = 17
+const minOctaves = 2
 
-const texture = Texture.from({
-  resource: new Uint8Array(data),
-  width: width,
-  height: height,
-  scaleMode: 'nearest',
-})
+const position = { x: 0, y: 0 }
+let zoom = 10
+let level = 0
 
-const sprite = new Sprite(texture)
+// scene
+const sprite = new Sprite()
 app.stage.addChild(sprite)
 
+// noise
+const noise = wrap<NoiseWorker>(new Worker(new URL('./workers/noise.ts', import.meta.url), { type: 'module' }))
+noise.set({ size: { width: size, height: size } })
+
 // zoom
-let zoom = 1
 const zoomSpeed = 0.1
+const zoomMax = Math.pow(2, maxLevel)
+const zoomMin = 10
 addEventListener('wheel', (e: WheelEvent) => {
   const dir = e.deltaY > 0 ? -1 : 1
   zoom += zoom * zoomSpeed * dir
-  zoom = Math.max(0.5, Math.min(5, zoom))
-  sprite.scale.set(zoom)
+  zoom = Math.max(zoomMin, Math.min(zoomMax, zoom))
 })
 
 // drag
@@ -51,22 +49,46 @@ let dragOffset = { x: 0, y: 0 }
 addEventListener('pointerdown', (e: PointerEvent) => {
   drag = true
   dragStart = { x: e.clientX, y: e.clientY }
-  dragOffset = { x: sprite.x, y: sprite.y }
+  dragOffset = { x: position.x, y: position.y }
 })
 addEventListener('pointermove', (e: PointerEvent) => {
   if (drag) {
-    sprite.x = dragOffset.x + e.clientX - dragStart.x
-    sprite.y = dragOffset.y + e.clientY - dragStart.y
+    position.x = dragOffset.x + e.clientX - dragStart.x
+    position.y = dragOffset.y + e.clientY - dragStart.y
   }
 })
 addEventListener('pointerup', () => {
   drag = false
 })
 
-const debugLine = new Graphics()
-app.stage.addChild(debugLine)
-
 // ticker
 app.ticker.add(() => {
-  debug.innerText = `FPS: ${Math.round(app.ticker.FPS)}`
+  debug.innerText = `FPS: ${Math.round(app.ticker.FPS)} zoom: ${zoom} level: ${level}`
+
+  app.stage.scale.set(zoom)
+  app.stage.position.set(position.x, position.y)
+
+  updateQTree()
 })
+
+// 每次变换触发更新，更新时需要标记，直到上次更新完再接受下次更新
+//   - 考虑实现可撤销过时更新
+
+let gen = false
+function updateQTree() {
+  const currLevel = Math.max(0, Math.min(maxLevel, Math.floor(Math.log2(zoom))))
+  if (!gen && currLevel !== level) {
+    gen = true
+    noise.set({ noise: { octaves: minOctaves + currLevel } })
+    noise.gen(chunk).then((buffer) => {
+      sprite.texture = Texture.from({
+        resource: new Uint8Array(buffer),
+        width: size,
+        height: size,
+        scaleMode: 'nearest',
+      })
+      gen = false
+    })
+  }
+  level = currLevel
+}

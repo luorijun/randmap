@@ -10,24 +10,48 @@ noise.SetFractalLacunarity(2.0)
 noise.SetFractalGain(0.5)
 noise.SetFractalOctaves(8)
 
-let width: number
-let height: number
+let width: number = 256
+let height: number = 256
 let buffer: SharedArrayBuffer
 let array: Uint32Array
 
-async function set(params: { width: number, height: number }) {
-  width = params.width
-  height = params.height
-  buffer = new SharedArrayBuffer(params.width * params.height * Int32Array.BYTES_PER_ELEMENT)
-  array = new Uint32Array(buffer)
+function set(params: {
+  size?: {
+    width?: number
+    height?: number
+  }
+  noise?: {
+    seed?: number
+    type?: FastNoiseLite.NoiseType
+    frequency?: number
+    fractalType?: FastNoiseLite.FractalType
+    lacunarity?: number
+    gain?: number
+    octaves?: number
+  }
+}) {
+  if (params.size) {
+    width = params.size.width || width
+    height = params.size.height || height
+  }
+
+  if (params.noise) {
+    if (params.noise.seed) noise.SetSeed(params.noise.seed)
+    if (params.noise.type) noise.SetNoiseType(params.noise.type)
+    if (params.noise.frequency) noise.SetFrequency(params.noise.frequency)
+    if (params.noise.fractalType) noise.SetFractalType(params.noise.fractalType)
+    if (params.noise.lacunarity) noise.SetFractalLacunarity(params.noise.lacunarity)
+    if (params.noise.gain) noise.SetFractalGain(params.noise.gain)
+    if (params.noise.octaves) noise.SetFractalOctaves(params.noise.octaves)
+  }
 }
 
 async function gen(chunk: { x: number, y: number }) {
-  if (!width || !height || !buffer || !array) {
-    throw new Error('noise 没有初始化配置')
-  }
-
   const now = Date.now()
+
+  buffer = new SharedArrayBuffer(width * height * Int32Array.BYTES_PER_ELEMENT)
+  array = new Uint32Array(buffer)
+
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
       const v = noise.GetNoise((chunk.x * width + x), (chunk.y * height + y)) / 2 + 0.5
