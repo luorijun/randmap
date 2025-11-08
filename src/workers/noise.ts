@@ -1,8 +1,10 @@
-import FastNoiseLite from 'fastnoise-lite-typed'
 import { expose } from 'comlink'
+import FastNoiseLite from 'fastnoise-lite-typed'
 
-const noise: FastNoiseLite = new FastNoiseLite()
-// noise.SetSeed(Date.now())
+let batchBuffer: SharedArrayBuffer
+let batchArr: Int16Array
+
+const noise = new FastNoiseLite()
 noise.SetNoiseType(FastNoiseLite.NoiseType.Perlin)
 noise.SetFrequency(0.004)
 noise.SetFractalType(FastNoiseLite.FractalType.FBm)
@@ -10,54 +12,43 @@ noise.SetFractalLacunarity(2.0)
 noise.SetFractalGain(0.5)
 noise.SetFractalOctaves(8)
 
-let width: number = 256
-let height: number = 256
-let buffer: SharedArrayBuffer
-let array: Uint32Array
-
-function set(params: {
-  size?: {
-    width?: number
-    height?: number
-  }
-  noise?: {
-    seed?: number
-    type?: FastNoiseLite.NoiseType
-    frequency?: number
-    fractalType?: FastNoiseLite.FractalType
-    lacunarity?: number
-    gain?: number
-    octaves?: number
-  }
-}) {
-  if (params.size) {
-    width = params.size.width || width
-    height = params.size.height || height
-  }
-
-  if (params.noise) {
-    if (params.noise.seed) noise.SetSeed(params.noise.seed)
-    if (params.noise.type) noise.SetNoiseType(params.noise.type)
-    if (params.noise.frequency) noise.SetFrequency(params.noise.frequency)
-    if (params.noise.fractalType) noise.SetFractalType(params.noise.fractalType)
-    if (params.noise.lacunarity) noise.SetFractalLacunarity(params.noise.lacunarity)
-    if (params.noise.gain) noise.SetFractalGain(params.noise.gain)
-    if (params.noise.octaves) noise.SetFractalOctaves(params.noise.octaves)
-  }
+function buf(buffer: SharedArrayBuffer) {
+  batchBuffer = buffer
+  batchArr = new Int16Array(buffer)
 }
 
-async function gen(chunk: { x: number, y: number }) {
+function set(props?: {
+  seed?: number
+  type?: FastNoiseLite.NoiseType
+  frequency?: number
+  fractalType?: FastNoiseLite.FractalType
+  lacunarity?: number
+  gain?: number
+  octaves?: number
+}) {
+  if (props?.seed) noise.SetSeed(props.seed)
+  if (props?.type) noise.SetNoiseType(props.type)
+  if (props?.frequency) noise.SetFrequency(props.frequency)
+  if (props?.fractalType) noise.SetFractalType(props.fractalType)
+  if (props?.lacunarity) noise.SetFractalLacunarity(props.lacunarity)
+  if (props?.gain) noise.SetFractalGain(props.gain)
+  if (props?.octaves) noise.SetFractalOctaves(props.octaves)
+}
+
+async function gen(chunk: { x: number, y: number, size: number, sample: number }, batch: number) {
+  console.log(chunk.x, chunk.y)
   const now = Date.now()
 
-  buffer = new SharedArrayBuffer(width * height * Int32Array.BYTES_PER_ELEMENT)
-  array = new Uint32Array(buffer)
+  const buffer = new SharedArrayBuffer(chunk.sample * chunk.sample * Int32Array.BYTES_PER_ELEMENT)
+  const array = new Uint32Array(buffer)
 
-  for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
-      const v = noise.GetNoise((chunk.x * width + x), (chunk.y * height + y)) / 2 + 0.5
-      // array[y * width + x] = (255 << 24) | (v << 16) | (v << 8) | v
-      array[y * width + x] = terrain(v)
-    }
+  const samples = chunk.sample * chunk.sample
+  for (let i = 0; i < samples; i++) {
+    if (batch != batchArr[0]) return null
+    const x = (i % chunk.sample) / chunk.sample * chunk.size - chunk.size / 2 + 0.5 + chunk.x
+    const y = Math.floor(i / chunk.sample) / chunk.sample * chunk.size - chunk.size / 2 + 0.5 + chunk.y
+    const v = noise.GetNoise(x, y) / 2 + 0.5
+    array[i] = terrain(v)
   }
   console.log('gen time', Date.now() - now + 'ms')
   return buffer
@@ -77,10 +68,6 @@ function terrain(v: number) {
   return 0xffffffff // 雪峰 (白色)
 }
 
-const api = {
-  set,
-  gen,
-}
-
+const api = { buf, set, gen }
 expose(api)
 export type NoiseWorker = typeof api
