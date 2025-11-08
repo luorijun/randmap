@@ -73,13 +73,6 @@ addEventListener('pointerup', () => {
 })
 
 // ticker
-const dot = new Graphics().rect(0, 0, 4, 4).fill({ color: 'red' })
-dot.pivot.set(2)
-trans.addChild(dot)
-
-const border = new Graphics()
-trans.addChild(border)
-
 app.ticker.add(() => {
   const text = `zoom: ${zoom} level: ${Math.max(0, Math.min(maxLevel, Math.floor(Math.log2(zoom))))}`
   if (debug.innerText != text) {
@@ -88,9 +81,6 @@ app.ticker.add(() => {
 
   world.scale.set(zoom)
   trans.position.set(position.x, position.y)
-
-  border.clear().rect(0, 0, size * zoom, size * zoom).stroke({ color: 'red' })
-  border.pivot.set(size * zoom / 2)
 
   const time = Date.now()
   const currLevel = Math.max(0, Math.min(maxLevel, Math.floor(Math.log2(zoom))))
