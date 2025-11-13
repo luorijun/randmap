@@ -43,7 +43,7 @@ addEventListener('wheel', (e: WheelEvent) => {
   const dir = e.deltaY > 0 ? -1 : 1
   if ((dir < 0 && zoom <= zoomMin) || (dir > 0 && zoom >= zoomMax)) return
   zoom *= (1 + zoomSpeed * dir)
-  zoom = Math.max(zoomMin, Math.min(zoomMax, zoom))
+  // zoom = Math.max(zoomMin, Math.min(zoomMax, zoom))
   position.x -= (pointer.x - position.x) * zoomSpeed * dir
   position.y -= (pointer.y - position.y) * zoomSpeed * dir
   dragStart = { x: e.clientX, y: e.clientY }
