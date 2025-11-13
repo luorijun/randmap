@@ -1,6 +1,7 @@
 import '@/style.css'
 import { Application, Container } from 'pixi.js'
 import { ChunkTree, Chunk } from './chunk'
+import { toBase62 } from './utils'
 
 // init
 const draw = document.querySelector('#map') as HTMLDivElement
@@ -23,6 +24,7 @@ trans.addChild(world)
 
 // start
 const size = 256
+const baseOctaves = 8
 const maxLevel = 13
 
 const center = { x: app.screen.width / 2, y: app.screen.height / 2 }
@@ -32,7 +34,7 @@ const position = { x: center.x, y: center.y }
 let zoom = (app.screen.height - 40) / size
 let level = -1
 
-const tree = new ChunkTree(size, world)
+const tree = new ChunkTree(size, world, baseOctaves)
 
 // zoom
 const zoomSpeed = 0.1
@@ -96,22 +98,27 @@ app.ticker.add(() => {
   }
 })
 
+// debug
 declare global {
   interface Window {
     world: typeof world
     root: typeof tree
     load: boolean
+    clear: () => void
   }
 }
 
 window.root = tree
 window.world = world
 window.load = true
+window.clear = () => {
+  tree.root.clear()
+}
 
 function treeString(chunk: Chunk): string {
   const children = chunk.children.map(child => treeString(child))
   const lead = ' '.repeat(chunk.level) + '> '
-  return `${lead}${chunk.level}: q${chunk.quadrant || 0} s${chunk.size} ${chunk.status}\n${children.join('')}`
+  return `${lead}${chunk.level}: ${toBase62(chunk.id)} ${chunk.status}\n${children.join('')}`
 }
 
 setInterval(() => {
@@ -120,3 +127,9 @@ setInterval(() => {
     <pre>${str}</pre>
   `
 }, 100)
+
+let sum = 0
+for (let i = 0; i < 13; i++) {
+  sum += 4 ** i
+}
+console.log(sum, (2 ** 14 - 1) ** 2)

@@ -55,17 +55,6 @@ async function gen(batch: number, chunk: { x: number, y: number }, size: number,
     array[i] = terrain(v)
   }
 
-  // for (let ix = 0; ix < sample; ix++) {
-  //   if (batch != batchArr[0]) return null
-  //   for (let iy = 0; iy < sample; iy++) {
-  //     const i = ix + iy * sample
-  //     const x = ix / sample * size - size / 2 + 0.5 + chunk.x
-  //     const y = iy / sample * size - size / 2 + 0.5 + chunk.y
-  //     const v = noise.GetNoise(x, y) / 2 + 0.5
-  //     array[i] = terrain(v)
-  //   }
-  // }
-
   console.log('gen time', Date.now() - now + 'ms')
   countArr[0]--
   return buffer
@@ -76,7 +65,7 @@ async function gen(batch: number, chunk: { x: number, y: number }, size: number,
 //   return 255 << 24 | v << 16 | v << 8 | v
 // }
 
-const step = 0.02
+const step = 0.01
 function terrain(v: number) {
   const steppedValue = Math.floor(v / step) * step
   const colorSteps: [number, number, number][] = [
