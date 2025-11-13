@@ -10,6 +10,7 @@ export default defineConfig([
   {
     rules: {
       '@typescript-eslint/no-unused-vars': 'off',
+      'prefer-exponentiation-operator': 'warn',
     },
   },
 ])

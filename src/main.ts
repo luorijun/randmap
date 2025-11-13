@@ -1,5 +1,5 @@
 import '@/style.css'
-import { Application, Container, Graphics } from 'pixi.js'
+import { Application, Container } from 'pixi.js'
 import { ChunkTree, Chunk } from './chunk'
 
 // init./noise/noise
@@ -36,7 +36,7 @@ const tree = new ChunkTree(size, world)
 
 // zoom
 const zoomSpeed = 0.1
-const zoomMax = Math.pow(2, maxLevel)
+const zoomMax = 2 ** maxLevel
 const zoomMin = 1
 addEventListener('wheel', (e: WheelEvent) => {
   if (!draw.contains(e.target as Node)) return
@@ -73,8 +73,9 @@ addEventListener('pointerup', () => {
 })
 
 // ticker
+let loadTime = 0
 app.ticker.add(() => {
-  const text = `zoom: ${zoom} level: ${Math.max(0, Math.min(maxLevel, Math.floor(Math.log2(zoom))))}`
+  const text = `zoom: ${zoom} level: ${Math.max(0, Math.min(maxLevel, Math.floor(Math.log2(zoom))))} count: ${tree.tasks} load: ${loadTime}ms`
   if (debug.innerText != text) {
     debug.innerText = text
   }
@@ -83,12 +84,15 @@ app.ticker.add(() => {
   trans.position.set(position.x, position.y)
 
   const time = Date.now()
-  const currLevel = Math.max(0, Math.min(maxLevel, Math.floor(Math.log2(zoom))))
-  if (currLevel != level) {
-    tree.load(currLevel).then(() => {
-      level = currLevel
-      console.log('load tree', `${Date.now() - time}ms`)
+  level = Math.max(0, Math.min(maxLevel, Math.floor(Math.log2(zoom))))
+  if (window.load) {
+    tree.load(level, {
+      x: (center.x - position.x) / zoom,
+      y: (center.y - position.y) / zoom,
+      width: app.screen.width / zoom,
+      height: app.screen.height / zoom,
     })
+    loadTime = Date.now() - time
   }
 })
 
@@ -96,16 +100,18 @@ declare global {
   interface Window {
     world: typeof world
     root: typeof tree
+    load: boolean
   }
 }
 
 window.root = tree
 window.world = world
+window.load = true
 
 function treeString(chunk: Chunk): string {
   const children = chunk.children.map(child => treeString(child))
   const lead = ' '.repeat(chunk.level) + '> '
-  return `${lead}${chunk.level}: q=${chunk.quadrant || 0} s=${chunk.size}\n${children.join('')}`
+  return `${lead}${chunk.level}: q${chunk.quadrant || 0} s${chunk.size} ${chunk.status}\n${children.join('')}`
 }
 
 setInterval(() => {
@@ -113,4 +119,4 @@ setInterval(() => {
   params.innerHTML = `
     <pre>${str}</pre>
   `
-}, 1000)
+}, 100)

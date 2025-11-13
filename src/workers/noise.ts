@@ -2,6 +2,7 @@ import { expose } from 'comlink'
 import FastNoiseLite from 'fastnoise-lite-typed'
 
 let batchArr: Int16Array
+let countArr: Int32Array
 
 const noise = new FastNoiseLite()
 noise.SetSeed(Date.now())
@@ -12,8 +13,9 @@ noise.SetFractalLacunarity(2.0)
 noise.SetFractalGain(0.5)
 noise.SetFractalOctaves(8)
 
-function buf(buffer: SharedArrayBuffer) {
-  batchArr = new Int16Array(buffer)
+function buf(batch: SharedArrayBuffer, count: SharedArrayBuffer) {
+  batchArr = new Int16Array(batch)
+  countArr = new Int32Array(count)
 }
 
 function set(props?: {
@@ -34,45 +36,53 @@ function set(props?: {
   if (props?.octaves) noise.SetFractalOctaves(props.octaves)
 }
 
-async function gen(chunk: { x: number, y: number, size: number, sample: number }, batch: number) {
+async function gen(batch: number, chunk: { x: number, y: number }, size: number, sample: number) {
+  countArr[0]++
   const now = Date.now()
 
-  const buffer = new SharedArrayBuffer(chunk.sample * chunk.sample * Int32Array.BYTES_PER_ELEMENT)
+  const buffer = new SharedArrayBuffer(sample * sample * Int32Array.BYTES_PER_ELEMENT)
   const array = new Uint32Array(buffer)
 
-  const samples = chunk.sample * chunk.sample
+  const samples = sample * sample
   for (let i = 0; i < samples; i++) {
-    if (batch != batchArr[0]) return null
-    const x = (i % chunk.sample) / chunk.sample * chunk.size - chunk.size / 2 + 0.5 + chunk.x
-    const y = Math.floor(i / chunk.sample) / chunk.sample * chunk.size - chunk.size / 2 + 0.5 + chunk.y
+    if (batch != batchArr[0]) {
+      countArr[0]--
+      return null
+    }
+    const x = (i % sample) / sample * size - size / 2 + 0.5 + chunk.x
+    const y = Math.floor(i / sample) / sample * size - size / 2 + 0.5 + chunk.y
     const v = noise.GetNoise(x, y) / 2 + 0.5
     array[i] = terrain(v)
   }
+
+  // for (let ix = 0; ix < sample; ix++) {
+  //   if (batch != batchArr[0]) return null
+  //   for (let iy = 0; iy < sample; iy++) {
+  //     const i = ix + iy * sample
+  //     const x = ix / sample * size - size / 2 + 0.5 + chunk.x
+  //     const y = iy / sample * size - size / 2 + 0.5 + chunk.y
+  //     const v = noise.GetNoise(x, y) / 2 + 0.5
+  //     array[i] = terrain(v)
+  //   }
+  // }
+
   console.log('gen time', Date.now() - now + 'ms')
+  countArr[0]--
   return buffer
 }
 
-function heightmap(v: number) {
-  v = Math.floor(v * 255)
-  return 255 << 24 | v << 16 | v << 8 | v
-}
-
-function simpleTerrain(v: number) {
-  if (v < 0.5) return 0xffd17d24
-  if (v < 0.6) return 0xff55a63a
-  if (v < 0.7) return 0xff397825
-  if (v < 0.8) return 0xff808080
-  if (v < 0.9) return 0xffa9a9a9
-  return 0xffffffff
-}
+// function heightmap(v: number) {
+//   v = Math.floor(v * 255)
+//   return 255 << 24 | v << 16 | v << 8 | v
+// }
 
 const step = 0.02
 function terrain(v: number) {
   const steppedValue = Math.floor(v / step) * step
   const colorSteps: [number, number, number][] = [
     [0.5, 0xffb85d38, 0xfffb9a70],
-    [0.65, 0xff237810, 0xff61b65b],
-    [1.0, 0xff999966, 0xffffffff],
+    [0.8, 0xff237810, 0xff90d9fd],
+    [1.0, 0xffeeeeee, 0xffffffff],
   ]
 
   // 找到台阶值所在的区间
@@ -102,7 +112,6 @@ function terrain(v: number) {
     }
   }
 
-  // 如果 v >= 1.0，返回最后一个颜色
   return colorSteps[colorSteps.length - 1][1]
 }
 
