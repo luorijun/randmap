@@ -2,7 +2,7 @@ import '@/style.css'
 import { Application, Container } from 'pixi.js'
 import { ChunkTree, Chunk } from './chunk'
 
-// init./noise/noise
+// init
 const draw = document.querySelector('#map') as HTMLDivElement
 const debug = draw.querySelector('#debug') as HTMLSpanElement
 const params = document.querySelector('#params') as HTMLDivElement

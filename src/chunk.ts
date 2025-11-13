@@ -67,7 +67,7 @@ class Chunk {
   size: number
   level: number
   children: Chunk[]
-  status: 'init' | 'clear' | 'divide' | 'render'
+  status: 'init' | 'clear' | 'divide' | 'render' | 'done'
   sprite: Sprite
   rect?: Graphics
 
@@ -129,6 +129,7 @@ class Chunk {
       return
     }
 
+    // render
     this.render()
   }
 
@@ -141,17 +142,15 @@ class Chunk {
 
   divide(level: number, rect: RectangleLike) {
     this.loadChildren(level, rect)
-    this.hiddenSelf()
     this.status = 'divide'
   }
 
   render() {
-    if (this.status === 'render') return
+    if (this.status === 'render' || this.status === 'done') return
     noise.set({ octaves: this.root.baseOctaves + this.level })
     queue.push([this, (buffer) => {
       if (!buffer) return
 
-      console.log('render')
       this.sprite.texture = Texture.from({
         resource: new Uint8Array(buffer),
         width: this.root.size,
@@ -163,6 +162,11 @@ class Chunk {
         .fill({ color: 'green', alpha: 0.2 })
 
       this.destroyChildren()
+
+      this.status = 'done'
+      if (this.parent && this.parent.children.every(child => child.status === 'done')) {
+        this.parent.hiddenSelf()
+      }
     }])
     this.status = 'render'
   }
