@@ -1,5 +1,5 @@
 import { expose } from 'comlink'
-import FastNoiseLite from 'fastnoise-lite-typed'
+import * as FastNoiseLite from 'fastnoise-lite-typed'
 
 let batchArr: Int16Array
 let countArr: Int32Array
