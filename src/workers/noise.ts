@@ -1,5 +1,6 @@
+// @ts-expect-error qaq
+import FastNoiseLite from 'fastnoise-lite'
 import { expose } from 'comlink'
-import * as FastNoiseLite from 'fastnoise-lite-typed'
 
 let batchArr: Int16Array
 let countArr: Int32Array
