@@ -1,7 +1,7 @@
 import { Container, Graphics, Sprite, Text, Texture, type PointData, type RectangleLike } from 'pixi.js'
 import { wrap } from 'comlink'
-import type { NoiseWorker } from '@/workers/noise'
-import { toBase62 } from './utils'
+import type { NoiseWorker } from './workers/noise'
+import { toBase62 } from '@/utils'
 
 const batchBuffer = new SharedArrayBuffer(2)
 const countBuffer = new SharedArrayBuffer(4)
