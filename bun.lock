@@ -5,6 +5,7 @@
     "": {
       "name": "randmap",
       "dependencies": {
+        "fastnoise-lite-typed": "^1.1.7",
         "poisson-disk-sampling": "^2.3.1",
       },
       "devDependencies": {
@@ -350,6 +351,8 @@
     "eventemitter3": ["eventemitter3@5.0.1", "https://registry.npmmirror.com/eventemitter3/-/eventemitter3-5.0.1.tgz", {}, "sha512-GWkBvjiSZK87ELrYOSESUYeVIc9mvLLf/nXalMOS5dYrgZq9o5OVkbZAVM06CVxYsCwH9BDZFPlQTlPA1j4ahA=="],
 
     "fastnoise-lite": ["fastnoise-lite@1.1.1", "", {}, "sha512-3XEk16gmVq1HUL0+BdoR+/wD/tfB6VQjpliqQ7rSSE2omh23wrJGidQ5Mfr4mECCUtBGtcEov44BGIyVqs+U4w=="],
+
+    "fastnoise-lite-typed": ["fastnoise-lite-typed@1.1.7", "https://registry.npmmirror.com/fastnoise-lite-typed/-/fastnoise-lite-typed-1.1.7.tgz", {}, "sha512-Lg10/PKugxgtXM15+HTCSCNPpaKBQQdDGDH63AQQPnb3HxwuVr2L2dYCWRmbwzDpg7BVeZXrAUulwOcqvECdpQ=="],
 
     "fdir": ["fdir@6.5.0", "https://registry.npmmirror.com/fdir/-/fdir-6.5.0.tgz", { "peerDependencies": { "picomatch": "^3 || ^4" }, "optionalPeers": ["picomatch"] }, "sha512-tIbYtZbucOs0BRGqPJkshJUYdL+SDH7dVM8gjy+ERp3WAUjLEFJE+02kanyHtwjWOnwrKYBiwAmM0p4kLJAnXg=="],
 
