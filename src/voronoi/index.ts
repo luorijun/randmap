@@ -1,10 +1,12 @@
 import { Delaunay, randomLcg, type Voronoi } from 'd3'
-import FastNoiseLite from 'fastnoise-lite-typed'
+// @ts-expect-error qaq
+import FastNoiseLite from 'fastnoise-lite'
 import { type Application, Container, Graphics, Text } from 'pixi.js'
 import PoissonDiskSampling from 'poisson-disk-sampling'
+import { proxy } from 'valtio/vanilla'
+import { watch } from 'valtio/vanilla/utils'
 import { temperature, terrain } from '@/base/draw'
 import { useInput } from '@/base/input'
-import { view, watchView } from '@/voronoi/view'
 
 let app: Application
 export async function init(pixiApp: Application) {
@@ -13,17 +15,19 @@ export async function init(pixiApp: Application) {
 	app.ticker.add(update)
 }
 
-type Point = {
+type Node = {
 	x: number
 	y: number
 	color: number
 	height: number
 	temperature: number
+	wind: number
 	polar: number
 	tile: Graphics
 	text: Text
 }
 
+// 常量
 const width = 4000
 const height = 2000
 
@@ -31,7 +35,6 @@ const tileSeed = 9856
 const random = randomLcg(tileSeed)
 
 const noiseSeed = 9856
-
 const noise = new FastNoiseLite(noiseSeed)
 noise.SetNoiseType(FastNoiseLite.NoiseType.Perlin)
 noise.SetFrequency(2.5)
@@ -44,15 +47,26 @@ const tempMax = 30
 const tempMin = -20
 const tempStep = 6.5
 
-const nodes: Point[] = []
-
-let world: Container
-let delaunay: Delaunay<Point>
-let voronoi: Voronoi<Point>
+// 图层
 let shapes: Container
+let lines: Container
 let texts: Container
 
+// 变量
+let world: Container
 let input: ReturnType<typeof useInput>
+
+let nodes: Node[] = []
+let delaunay: Delaunay<Node>
+let voronoi: Voronoi<Node>
+
+export const data = proxy<{
+	mode: 'line' | 'area'
+	view: 'cid' | 'height' | 'terrain' | 'temperature' | 'wind'
+}>({
+	mode: 'area',
+	view: 'temperature',
+})
 
 function start() {
 	world = new Container({
@@ -72,22 +86,38 @@ function start() {
 		},
 	})
 
-	// init tiles
-	const pds = new PoissonDiskSampling(
+	// init nodes
+	nodes = new PoissonDiskSampling(
 		{
 			shape: [width, height],
 			minDistance: 10,
 		},
 		random,
 	)
+		.fill()
+		.map<Node>(
+			p =>
+				({
+					x: p[0] - width / 2,
+					y: p[1] - height / 2,
+				}) as Node,
+		)
 
-	pds.fill().forEach((p, i) => {
-		const node = {
-			x: p[0] - width / 2,
-			y: p[1] - height / 2,
-		} as Point
-		nodes.push(node)
+	// init edges
+	delaunay = Delaunay.from(
+		nodes,
+		d => d.x,
+		d => d.y,
+	)
 
+	const hw = width / 2
+	const hh = height / 2
+	voronoi = delaunay.voronoi([-hw, -hh, hw, hh])
+
+	// todo
+
+	// init tiles
+	nodes.forEach((node, i) => {
 		// cid
 		node.color = (i * 7821629) % 2 ** 24
 
@@ -101,24 +131,14 @@ function start() {
 		node.temperature = tempValue
 
 		// polar
-		node.polar = Math.max(0, Math.min(1, Math.abs(node.y / height) * 0.5))
+		// node.polar = Math.max(0, Math.min(1, Math.abs(node.y / height) * 0.5))
 	})
 
-	// init mesh
-	delaunay = Delaunay.from(
-		nodes,
-		(d) => d.x,
-		(d) => d.y,
-	)
-
-	const hw = width / 2
-	const hh = height / 2
-	voronoi = delaunay.voronoi([-hw, -hh, hw, hh])
-
 	// draw
-	drawTile(view)
-	drawText(view)
-	watchView((view) => {
+	drawTile(data.view)
+	drawText(data.view)
+	watch(get => {
+		const view = get(data).view
 		drawTile(view)
 		drawText(view)
 	})
@@ -134,10 +154,10 @@ function update() {
 	}
 }
 
-function drawTile(view: string) {
+function drawTile(view: typeof data.view) {
 	if (!shapes) {
 		shapes = new Container({ parent: world })
-		Array.from(voronoi.cellPolygons()).forEach((polygon) => {
+		Array.from(voronoi.cellPolygons()).forEach(polygon => {
 			const node = nodes[polygon.index]
 			node.tile = new Graphics().poly(polygon.flat(), true).fill(0xffffff)
 			shapes.addChild(node.tile)
@@ -169,9 +189,19 @@ function drawTile(view: string) {
 	})
 }
 
-function drawText(view: string) {
+function drawLine(mode: typeof data.mode) {
+	if (!lines) {
+		lines = new Container({ parent: world })
+	}
+	for (const node of nodes) {
+		if (mode === 'line') {
+		}
+	}
+}
+
+function drawText(view: typeof data.view) {
 	if (!texts) {
-		texts = new Container({ parent: world, eventMode: 'none' })
+		texts = new Container({ parent: world })
 		for (const node of nodes) {
 			node.text = new Text({
 				parent: texts,

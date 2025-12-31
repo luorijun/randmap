@@ -7,6 +7,7 @@
       "dependencies": {
         "fastnoise-lite-typed": "^1.1.7",
         "poisson-disk-sampling": "^2.3.1",
+        "valtio": "^2.2.0",
       },
       "devDependencies": {
         "@biomejs/biome": "2.3.8",
@@ -418,6 +419,8 @@
 
     "postcss": ["postcss@8.5.6", "https://registry.npmmirror.com/postcss/-/postcss-8.5.6.tgz", { "dependencies": { "nanoid": "^3.3.11", "picocolors": "^1.1.1", "source-map-js": "^1.2.1" } }, "sha512-3Ybi1tAuwAP9s0r1UQ2J4n5Y0G05bJkpUIO0/bI9MhwmD70S5aTWbXGBwxHrelT+XM1k6dM0pk+SwNkpTRN7Pg=="],
 
+    "proxy-compare": ["proxy-compare@3.0.1", "https://registry.npmmirror.com/proxy-compare/-/proxy-compare-3.0.1.tgz", {}, "sha512-V9plBAt3qjMlS1+nC8771KNf6oJ12gExvaxnNzN/9yVRLdTv/lc+oJlnSzrdYDAvBfTStPCoiaCOTmTs0adv7Q=="],
+
     "robust-predicates": ["robust-predicates@3.0.2", "https://registry.npmmirror.com/robust-predicates/-/robust-predicates-3.0.2.tgz", {}, "sha512-IXgzBWvWQwE6PrDI05OvmXUIruQTcoMDzRsOd5CDvHCVLcLHMTSYvOK5Cm46kWqlV3yAbuSpBZdJ5oP5OUoStg=="],
 
     "rollup": ["rollup@4.52.3", "https://registry.npmmirror.com/rollup/-/rollup-4.52.3.tgz", { "dependencies": { "@types/estree": "1.0.8" }, "optionalDependencies": { "@rollup/rollup-android-arm-eabi": "4.52.3", "@rollup/rollup-android-arm64": "4.52.3", "@rollup/rollup-darwin-arm64": "4.52.3", "@rollup/rollup-darwin-x64": "4.52.3", "@rollup/rollup-freebsd-arm64": "4.52.3", "@rollup/rollup-freebsd-x64": "4.52.3", "@rollup/rollup-linux-arm-gnueabihf": "4.52.3", "@rollup/rollup-linux-arm-musleabihf": "4.52.3", "@rollup/rollup-linux-arm64-gnu": "4.52.3", "@rollup/rollup-linux-arm64-musl": "4.52.3", "@rollup/rollup-linux-loong64-gnu": "4.52.3", "@rollup/rollup-linux-ppc64-gnu": "4.52.3", "@rollup/rollup-linux-riscv64-gnu": "4.52.3", "@rollup/rollup-linux-riscv64-musl": "4.52.3", "@rollup/rollup-linux-s390x-gnu": "4.52.3", "@rollup/rollup-linux-x64-gnu": "4.52.3", "@rollup/rollup-linux-x64-musl": "4.52.3", "@rollup/rollup-openharmony-arm64": "4.52.3", "@rollup/rollup-win32-arm64-msvc": "4.52.3", "@rollup/rollup-win32-ia32-msvc": "4.52.3", "@rollup/rollup-win32-x64-gnu": "4.52.3", "@rollup/rollup-win32-x64-msvc": "4.52.3", "fsevents": "~2.3.2" }, "bin": { "rollup": "dist/bin/rollup" } }, "sha512-RIDh866U8agLgiIcdpB+COKnlCreHJLfIhWC3LVflku5YHfpnsIKigRZeFfMfCc4dVcqNVfQQ5gO/afOck064A=="],
@@ -441,6 +444,8 @@
     "typescript": ["typescript@5.8.3", "https://registry.npmmirror.com/typescript/-/typescript-5.8.3.tgz", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-p1diW6TqL9L07nNxvRMM7hMMw4c5XOo/1ibL4aAIGmSAt9slTE1Xgw5KWuof2uTOvCg9BY7ZRi+GaF+7sfgPeQ=="],
 
     "undici-types": ["undici-types@7.16.0", "https://registry.npmmirror.com/undici-types/-/undici-types-7.16.0.tgz", {}, "sha512-Zz+aZWSj8LE6zoxD+xrjh4VfkIG8Ya6LvYkZqtUQGJPZjYl53ypCaUwWqo7eI0x66KBGeRo+mlBEkMSeSZ38Nw=="],
+
+    "valtio": ["valtio@2.2.0", "https://registry.npmmirror.com/valtio/-/valtio-2.2.0.tgz", { "dependencies": { "proxy-compare": "^3.0.1" }, "peerDependencies": { "@types/react": ">=18.0.0", "react": ">=18.0.0" }, "optionalPeers": ["@types/react", "react"] }, "sha512-l/zzQahUIm+dfUUP9fIecNVEWJLea9shMC1Bb1aK+v4XNOEzoq796Qax+yzMemmqpltuxfH7kPJy62FVGJDEtw=="],
 
     "vite": ["vite@7.1.7", "https://registry.npmmirror.com/vite/-/vite-7.1.7.tgz", { "dependencies": { "esbuild": "^0.25.0", "fdir": "^6.5.0", "picomatch": "^4.0.3", "postcss": "^8.5.6", "rollup": "^4.43.0", "tinyglobby": "^0.2.15" }, "optionalDependencies": { "fsevents": "~2.3.3" }, "peerDependencies": { "@types/node": "^20.19.0 || >=22.12.0", "jiti": ">=1.21.0", "less": "^4.0.0", "lightningcss": "^1.21.0", "sass": "^1.70.0", "sass-embedded": "^1.70.0", "stylus": ">=0.54.8", "sugarss": "^5.0.0", "terser": "^5.16.0", "tsx": "^4.8.1", "yaml": "^2.4.2" }, "optionalPeers": ["@types/node", "jiti", "less", "lightningcss", "sass", "sass-embedded", "stylus", "sugarss", "terser", "tsx", "yaml"], "bin": { "vite": "bin/vite.js" } }, "sha512-VbA8ScMvAISJNJVbRDTJdCwqQoAareR/wutevKanhR2/1EkoXVZVkkORaYm/tNVCjP/UDTKtcw3bAkwOUdedmA=="],
 

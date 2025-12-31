@@ -28,6 +28,5 @@
     "allowJs": true,
     "checkJs": true,
   },
-  "exclude": ["src/base/FastNoiseLite.js"],
   "include": ["src"],
 }

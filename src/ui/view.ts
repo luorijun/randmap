@@ -1,15 +1,44 @@
-import { setView, view, watchView } from '../voronoi/view'
+import { watch } from 'valtio/vanilla/utils'
+import { data } from '@/voronoi'
 
 export default function drawView() {
 	const el = document.getElementById('view')
-	el?.appendChild(selectView())
+	el?.setAttribute('style', 'display: flex; align-items: center; gap: 8px;')
+	el?.appendChild(modeSelect())
+	el?.appendChild(viewSelect())
 }
 
-function selectView() {
+function modeSelect() {
+	const modeSelect = document.createElement('select')
+	modeSelect.name = 'mode'
+	modeSelect.addEventListener('change', (event) => {
+		data.mode = (event.target as HTMLSelectElement).value as typeof data.mode
+	})
+
+	// area
+	const area = document.createElement('option')
+	area.value = 'area'
+	area.textContent = 'Area'
+	modeSelect.appendChild(area)
+
+	// line
+	const line = document.createElement('option')
+	line.value = 'line'
+	line.textContent = 'Line'
+	modeSelect.appendChild(line)
+
+	modeSelect.value = data.mode
+	watch((get) => {
+		modeSelect.value = get(data).mode
+	})
+	return modeSelect
+}
+
+function viewSelect() {
 	const viewSelect = document.createElement('select')
 	viewSelect.name = 'view'
 	viewSelect.addEventListener('change', (event) => {
-		setView((event.target as HTMLSelectElement).value)
+		data.view = (event.target as HTMLSelectElement).value as typeof data.view
 	})
 
 	// cid
@@ -42,9 +71,9 @@ function selectView() {
 	polar.textContent = 'Polar'
 	viewSelect.appendChild(polar)
 
-	viewSelect.value = view
-	watchView((view) => {
-		viewSelect.value = view
+	viewSelect.value = data.view
+	watch((get) => {
+		viewSelect.value = get(data).view
 	})
 	return viewSelect
 }
