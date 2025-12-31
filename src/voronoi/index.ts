@@ -2,7 +2,7 @@ import { Delaunay, randomLcg, type Voronoi } from 'd3'
 import FastNoiseLite from 'fastnoise-lite-typed'
 import { type Application, Container, Graphics, Text } from 'pixi.js'
 import PoissonDiskSampling from 'poisson-disk-sampling'
-import { terrain } from '@/base/draw'
+import { temperature, terrain } from '@/base/draw'
 import { useInput } from '@/base/input'
 import { view, watchView } from '@/voronoi/view'
 
@@ -18,6 +18,8 @@ type Point = {
 	y: number
 	color: number
 	height: number
+	temperature: number
+	polar: number
 	tile: Graphics
 	text: Text
 }
@@ -29,6 +31,7 @@ const tileSeed = 9856
 const random = randomLcg(tileSeed)
 
 const noiseSeed = 9856
+
 const noise = new FastNoiseLite(noiseSeed)
 noise.SetNoiseType(FastNoiseLite.NoiseType.Perlin)
 noise.SetFrequency(2.5)
@@ -36,6 +39,10 @@ noise.SetFractalType(FastNoiseLite.FractalType.FBm)
 noise.SetFractalLacunarity(2.0)
 noise.SetFractalGain(0.5)
 noise.SetFractalOctaves(8)
+
+const tempMax = 30
+const tempMin = -20
+const tempStep = 6.5
 
 const nodes: Point[] = []
 
@@ -87,6 +94,14 @@ function start() {
 		// height
 		const max = Math.max(width, height)
 		node.height = (noise.GetNoise(node.x / max, node.y / max) + 1) * 0.5
+
+		// temperature
+		const tempBase = tempMax - (tempMax - tempMin) * Math.abs(node.y / (height / 2))
+		const tempValue = tempBase - tempStep * Math.max(0, node.height - 0.5) * 20 // .5 映射到 10000
+		node.temperature = tempValue
+
+		// polar
+		node.polar = Math.max(0, Math.min(1, Math.abs(node.y / height) * 0.5))
 	})
 
 	// init mesh
@@ -130,32 +145,23 @@ function drawTile(view: string) {
 	}
 
 	shapes.cacheAsTexture(false)
-	switch (view) {
-		case 'cid': {
-			for (const node of nodes) {
+	for (const node of nodes) {
+		switch (view) {
+			case 'cid':
 				node.tile.tint = node.color
-			}
-			break
-		}
-		case 'height': {
-			for (const node of nodes) {
+				break
+			case 'height':
 				node.tile.tint = `hsl(0 0% ${node.height * 100}%)`
-			}
-			break
-		}
-		case 'terrain': {
-			let max = -Infinity
-			let min = Infinity
-			for (const node of nodes) {
-				max = Math.max(max, node.height)
-				min = Math.min(min, node.height)
+				break
+			case 'terrain':
 				node.tile.tint = terrain(node.height)
-			}
-			console.log(`min: ${min}, max: ${max}`)
-			break
+				break
+			case 'temperature':
+				node.tile.tint = temperature((node.temperature - tempMin) / (tempMax - tempMin))
+				break
+			default:
+				console.log('视图类型不正确', view)
 		}
-		default:
-			console.log('视图类型不正确', view)
 	}
 	shapes.cacheAsTexture({
 		antialias: false,
@@ -190,8 +196,11 @@ function drawText(view: string) {
 			case 'terrain':
 				node.text.text = node.height.toFixed(3)
 				break
-
+			case 'temperature':
+				node.text.text = node.temperature.toFixed(2)
+				break
 			default:
+				node.text.text = 'X'
 				console.log('视图类型不正确', view)
 		}
 	}

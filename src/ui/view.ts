@@ -30,6 +30,18 @@ function selectView() {
 	terrain.textContent = 'Terrain'
 	viewSelect.appendChild(terrain)
 
+	// temperature
+	const temperature = document.createElement('option')
+	temperature.value = 'temperature'
+	temperature.textContent = 'Temperature'
+	viewSelect.appendChild(temperature)
+
+	// polar
+	const polar = document.createElement('option')
+	polar.value = 'polar'
+	polar.textContent = 'Polar'
+	viewSelect.appendChild(polar)
+
 	viewSelect.value = view
 	watchView((view) => {
 		viewSelect.value = view
