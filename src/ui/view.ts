@@ -11,7 +11,7 @@ export default function drawView() {
 function modeSelect() {
 	const modeSelect = document.createElement('select')
 	modeSelect.name = 'mode'
-	modeSelect.addEventListener('change', (event) => {
+	modeSelect.addEventListener('change', event => {
 		data.mode = (event.target as HTMLSelectElement).value as typeof data.mode
 	})
 
@@ -28,7 +28,7 @@ function modeSelect() {
 	modeSelect.appendChild(line)
 
 	modeSelect.value = data.mode
-	watch((get) => {
+	watch(get => {
 		modeSelect.value = get(data).mode
 	})
 	return modeSelect
@@ -37,7 +37,7 @@ function modeSelect() {
 function viewSelect() {
 	const viewSelect = document.createElement('select')
 	viewSelect.name = 'view'
-	viewSelect.addEventListener('change', (event) => {
+	viewSelect.addEventListener('change', event => {
 		data.view = (event.target as HTMLSelectElement).value as typeof data.view
 	})
 
@@ -66,13 +66,13 @@ function viewSelect() {
 	viewSelect.appendChild(temperature)
 
 	// polar
-	const polar = document.createElement('option')
-	polar.value = 'polar'
-	polar.textContent = 'Polar'
-	viewSelect.appendChild(polar)
+	const inland = document.createElement('option')
+	inland.value = 'inland'
+	inland.textContent = 'Inland'
+	viewSelect.appendChild(inland)
 
 	viewSelect.value = data.view
-	watch((get) => {
+	watch(get => {
 		viewSelect.value = get(data).view
 	})
 	return viewSelect

@@ -1,4 +1,25 @@
-export function terrain(height: number) {
+export function temperature(temp: number): number {
+	const value = Math.max(0, Math.min(1, temp))
+
+	const coldColor = 0x3333ff
+	const hotColor = 0xff3333
+
+	const r1 = (coldColor >> 16) & 0xff
+	const g1 = (coldColor >> 8) & 0xff
+	const b1 = coldColor & 0xff
+
+	const r2 = (hotColor >> 16) & 0xff
+	const g2 = (hotColor >> 8) & 0xff
+	const b2 = hotColor & 0xff
+
+	const r = Math.round(r1 + (r2 - r1) * value)
+	const g = Math.round(g1 + (g2 - g1) * value)
+	const b = Math.round(b1 + (b2 - b1) * value)
+
+	return (r << 16) | (g << 8) | b
+}
+
+export function terrain(height: number, temperature: number) {
 	const step = 0.01
 	const steps: [number, number, number][] = [
 		[0.5, 0x385db8, 0x709afb],
@@ -43,23 +64,7 @@ export function terrain(height: number) {
 	return steps[steps.length - 1][2]
 }
 
-export function temperature(temp: number): number {
-	const value = Math.max(0, Math.min(1, temp))
-
-	const coldColor = 0x3333ff
-	const hotColor = 0xff3333
-
-	const r1 = (coldColor >> 16) & 0xff
-	const g1 = (coldColor >> 8) & 0xff
-	const b1 = coldColor & 0xff
-
-	const r2 = (hotColor >> 16) & 0xff
-	const g2 = (hotColor >> 8) & 0xff
-	const b2 = hotColor & 0xff
-
-	const r = Math.round(r1 + (r2 - r1) * value)
-	const g = Math.round(g1 + (g2 - g1) * value)
-	const b = Math.round(b1 + (b2 - b1) * value)
-
-	return (r << 16) | (g << 8) | b
+export function inland(curr: number, max: number): string {
+	const value = Math.max(0, Math.min(1, curr / max))
+	return `hsl(215 100% ${value * 50 + 50}%)`
 }
