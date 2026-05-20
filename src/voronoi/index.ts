@@ -7,6 +7,7 @@ import { proxy } from 'valtio/vanilla'
 import { watch } from 'valtio/vanilla/utils'
 import { inland, temperature, terrain } from '@/base/draw'
 import { useInput } from '@/base/input'
+import { type Wind, wind } from '@/calc/wind'
 
 let app: Application
 export async function init(pixiApp: Application) {
@@ -22,15 +23,15 @@ type Node = {
 	height: number
 	temperature: number
 	inland: number
-	wind: number
-	polar: number
+	wind: Wind
 	tile: Graphics
 	text: Text
 }
 
 // 常量
-const width = 4000
-const height = 2000
+export const width = 4000
+export const height = 2000
+export const rotation = Math.PI / 6
 
 const tileSeed = 9856
 const random = randomLcg(tileSeed)
@@ -51,7 +52,7 @@ const tempStep = 6.5
 // 变量
 let world: Container
 let tiles: Container
-let lines: Container
+let signs: Container
 let texts: Container
 
 const debug = document.getElementById('debug') as HTMLSpanElement
@@ -80,7 +81,7 @@ function start() {
 	})
 
 	tiles = new Container({ parent: world })
-	lines = new Container({ parent: world })
+	signs = new Container({ parent: world })
 	texts = new Container({ parent: world })
 
 	input = useInput(app, world, {
@@ -135,6 +136,9 @@ function start() {
 			node.inland = 0
 			scanQueue.push([i, node])
 		}
+
+		// wind
+		node.wind = wind(node.x, node.y)
 	})
 
 	console.log('data', `${performance.now() - time}ms`)
@@ -180,7 +184,6 @@ function drawTile(view: typeof data.view) {
 	for (let i = 0; i < nodes.length; i++) {
 		const node = nodes[i]
 		const polygon = voronoi.cellPolygon(i)
-		const neighbors = voronoi.neighbors(i)
 
 		node.tile = new Graphics({
 			parent: tiles,
@@ -195,37 +198,18 @@ function drawTile(view: typeof data.view) {
 			anchor: 0.5,
 		})
 
-		let minTempDiff = Infinity
-		let maxTempNeighbor: Node | null = null
-		for (const n of neighbors) {
-			const neighbor = nodes[n]
-			const tempDiff = node.temperature - neighbor.temperature
-			if (tempDiff < minTempDiff) {
-				minTempDiff = tempDiff
-				maxTempNeighbor = neighbor
-			}
-		}
-		if (minTempDiff < 0 && maxTempNeighbor) {
-			const width = -minTempDiff
-			const line = new Graphics({
-				parent: lines,
-			})
-				.moveTo(node.x, node.y)
-				.lineTo(maxTempNeighbor.x, maxTempNeighbor.y)
-				.stroke({ width, color: 0xff3333 })
-			const arrow = new Graphics({
-				parent: line,
-				x: maxTempNeighbor.x,
-				y: maxTempNeighbor.y,
-				rotation: Math.atan2(maxTempNeighbor.y - node.y, maxTempNeighbor.x - node.x),
-			})
-				.moveTo(0, 0)
-				.lineTo(-2 * width * 2, -1 * width * 2)
-				.lineTo(-2 * width * 2, 1 * width * 2)
-				.closePath()
-				.fill(0xff3333)
-			// arrow.rotation = Math.atan2(maxTempNeighbor.y - node.y, maxTempNeighbor.x - node.x) + Math.PI / 2
-		}
+		const length = node.wind.speed * 8
+		new Graphics({
+			parent: signs,
+			x: node.x,
+			y: node.y,
+			rotation: Math.atan2(node.wind.direction[1], node.wind.direction[0]),
+		})
+			.moveTo(length / 2, 0)
+			.lineTo(-length / 2, 2)
+			.lineTo(-length / 2, -2)
+			.closePath()
+			.fill(0xcc3333)
 	}
 
 	tiles.cacheAsTexture({
