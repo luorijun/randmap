@@ -68,3 +68,26 @@ export function inland(curr: number, max: number): string {
 	const value = Math.max(0, Math.min(1, curr / max))
 	return `hsl(215 100% ${value * 50 + 50}%)`
 }
+
+export function humidity(curr: number, max: number): number {
+	const ratio = max > 0 ? Math.max(0, Math.min(1, curr / max)) : 0
+	const contrast = 20
+	const value = Math.log1p(ratio * contrast) / Math.log1p(contrast)
+	return interpolate(0xd8b84f, 0x2f7ed8, value)
+}
+
+function interpolate(color1: number, color2: number, value: number): number {
+	const r1 = (color1 >> 16) & 0xff
+	const g1 = (color1 >> 8) & 0xff
+	const b1 = color1 & 0xff
+
+	const r2 = (color2 >> 16) & 0xff
+	const g2 = (color2 >> 8) & 0xff
+	const b2 = color2 & 0xff
+
+	const r = Math.round(r1 + (r2 - r1) * value)
+	const g = Math.round(g1 + (g2 - g1) * value)
+	const b = Math.round(b1 + (b2 - b1) * value)
+
+	return (r << 16) | (g << 8) | b
+}

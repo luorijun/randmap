@@ -5,9 +5,10 @@ import { type Application, Container, Graphics, Text } from 'pixi.js'
 import PoissonDiskSampling from 'poisson-disk-sampling'
 import { proxy } from 'valtio/vanilla'
 import { watch } from 'valtio/vanilla/utils'
-import { inland, temperature, terrain } from '@/base/draw'
+import { humidity, inland, temperature, terrain } from '@/base/draw'
 import { useInput } from '@/base/input'
-import { type Wind, wind } from '@/calc/wind'
+import { calculateHumidity, moistureDirection } from '@/calc/humidity'
+import { height, width } from '@/voronoi/constants'
 
 let app: Application
 export async function init(pixiApp: Application) {
@@ -23,15 +24,10 @@ type Node = {
 	height: number
 	temperature: number
 	inland: number
-	wind: Wind
+	humidity: number
 	tile: Graphics
 	text: Text
 }
-
-// 常量
-export const width = 4000
-export const height = 2000
-export const rotation = Math.PI / 6
 
 const tileSeed = 9856
 const random = randomLcg(tileSeed)
@@ -60,16 +56,17 @@ const debug = document.getElementById('debug') as HTMLSpanElement
 let input: ReturnType<typeof useInput>
 export const data = proxy<{
 	mode: 'line' | 'area'
-	view: 'cid' | 'height' | 'terrain' | 'temperature' | 'inland' | 'wind'
+	view: 'cid' | 'height' | 'terrain' | 'temperature' | 'inland' | 'humidity'
 }>({
 	mode: 'area',
-	view: 'terrain',
+	view: 'humidity',
 })
 
 let delaunay: Delaunay<Node>
 let voronoi: Voronoi<Node>
 let nodes: Node[] = []
 let maxInland = 0
+let maxHumidity = 0
 
 function start() {
 	world = new Container({
@@ -137,8 +134,7 @@ function start() {
 			scanQueue.push([i, node])
 		}
 
-		// wind
-		node.wind = wind(node.x, node.y)
+		node.humidity = 0
 	})
 
 	console.log('data', `${performance.now() - time}ms`)
@@ -162,8 +158,13 @@ function start() {
 
 	console.log('sdf', `${performance.now() - time}ms`)
 
+	maxHumidity = calculateHumidity(nodes, i => voronoi.neighbors(i))
+
+	console.log('humidity', `${performance.now() - time}ms`)
+
 	// draw
-	drawTile(data.view)
+	drawTile()
+	onChange(data.view)
 	watch(get => {
 		const view = get(data).view
 		onChange(view)
@@ -180,7 +181,7 @@ function update() {
 	})
 }
 
-function drawTile(view: typeof data.view) {
+function drawTile() {
 	for (let i = 0; i < nodes.length; i++) {
 		const node = nodes[i]
 		const polygon = voronoi.cellPolygon(i)
@@ -198,12 +199,13 @@ function drawTile(view: typeof data.view) {
 			anchor: 0.5,
 		})
 
-		const length = node.wind.speed * 8
+		const direction = moistureDirection(node.y)
+		const length = 8
 		new Graphics({
 			parent: signs,
 			x: node.x,
 			y: node.y,
-			rotation: Math.atan2(node.wind.direction[1], node.wind.direction[0]),
+			rotation: Math.atan2(direction[1], direction[0]),
 		})
 			.moveTo(length / 2, 0)
 			.lineTo(-length / 2, 2)
@@ -242,6 +244,10 @@ function onChange(view: typeof data.view) {
 			case 'inland':
 				node.tile.tint = inland(node.inland, maxInland)
 				node.text.text = node.inland === Infinity ? '∞' : node.inland.toString()
+				break
+			case 'humidity':
+				node.tile.tint = humidity(node.humidity, maxHumidity)
+				node.text.text = node.humidity.toFixed(3)
 				break
 			default:
 				console.log('视图类型不正确', view)

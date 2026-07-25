@@ -71,6 +71,11 @@ function viewSelect() {
 	inland.textContent = 'Inland'
 	viewSelect.appendChild(inland)
 
+	const humidity = document.createElement('option')
+	humidity.value = 'humidity'
+	humidity.textContent = 'Humidity'
+	viewSelect.appendChild(humidity)
+
 	viewSelect.value = data.view
 	watch(get => {
 		viewSelect.value = get(data).view
