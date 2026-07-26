@@ -53,11 +53,11 @@ function viewSelect() {
 	height.textContent = 'Heightmap'
 	viewSelect.appendChild(height)
 
-	// terrain
-	const terrain = document.createElement('option')
-	terrain.value = 'terrain'
-	terrain.textContent = 'Terrain'
-	viewSelect.appendChild(terrain)
+	// biome
+	const biome = document.createElement('option')
+	biome.value = 'biome'
+	biome.textContent = 'Biome'
+	viewSelect.appendChild(biome)
 
 	// temperature
 	const temperature = document.createElement('option')

@@ -1,3 +1,5 @@
+import type { BiomeId } from '@/calc/biome'
+
 export function temperature(temp: number): number {
 	const value = Math.max(0, Math.min(1, temp))
 
@@ -19,49 +21,37 @@ export function temperature(temp: number): number {
 	return (r << 16) | (g << 8) | b
 }
 
-export function terrain(height: number, temperature: number) {
-	const step = 0.01
-	const steps: [number, number, number][] = [
-		[0.5, 0x385db8, 0x709afb],
-		[0.8, 0x107823, 0xfdd990],
-		[1.0, 0xeeeeee, 0xffffff],
-	]
-
-	const value = Math.floor(height / step) * step
-
-	// 边界条件
-	if (value < 0) {
-		return steps[0][1]
+export function biome(id: BiomeId): number {
+	switch (id) {
+		case 'deepOcean':
+			return 0x15366f
+		case 'shallowOcean':
+			return 0x2f6fad
+		case 'iceSheet':
+			return 0xf3f7fb
+		case 'tundra':
+			return 0xb7bba1
+		case 'taiga':
+			return 0x416b4f
+		case 'temperateForest':
+			return 0x2f7d45
+		case 'temperateRainforest':
+			return 0x1f6f61
+		case 'grassland':
+			return 0xb6bd55
+		case 'shrubland':
+			return 0xc29f57
+		case 'subtropicalDesert':
+			return 0xe2c16f
+		case 'savanna':
+			return 0xc9ad46
+		case 'tropicalSeasonalForest':
+			return 0x48924f
+		case 'tropicalRainforest':
+			return 0x136b3a
+		case 'alpine':
+			return 0x8a8f85
 	}
-	if (value >= steps[steps.length - 1][0]) {
-		return steps[steps.length - 1][2]
-	}
-
-	// 找到台阶值所在的区间
-	for (let i = 0; i < steps.length; i++) {
-		const s1 = i === 0 ? 0 : steps[i - 1][0]
-		const [s2, color1, color2] = steps[i]
-
-		if (value >= s1 && value < s2) {
-			const t = (value - s1) / (s2 - s1)
-
-			const r1 = (color1 >> 16) & 0xff
-			const g1 = (color1 >> 8) & 0xff
-			const b1 = color1 & 0xff
-
-			const r2 = (color2 >> 16) & 0xff
-			const g2 = (color2 >> 8) & 0xff
-			const b2 = color2 & 0xff
-
-			const r = Math.round(r1 + (r2 - r1) * t)
-			const g = Math.round(g1 + (g2 - g1) * t)
-			const b = Math.round(b1 + (b2 - b1) * t)
-
-			return (r << 16) | (g << 8) | b
-		}
-	}
-
-	return steps[steps.length - 1][2]
 }
 
 export function inland(curr: number, max: number): string {

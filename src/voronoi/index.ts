@@ -5,8 +5,9 @@ import { type Application, Container, Graphics, Text } from 'pixi.js'
 import PoissonDiskSampling from 'poisson-disk-sampling'
 import { proxy } from 'valtio/vanilla'
 import { watch } from 'valtio/vanilla/utils'
-import { humidity, inland, temperature, terrain } from '@/base/draw'
+import { biome, humidity, inland, temperature } from '@/base/draw'
 import { useInput } from '@/base/input'
+import { biomeAbbreviation, calculateBiome, type BiomeId } from '@/calc/biome'
 import { calculateHumidity, moistureDirection } from '@/calc/humidity'
 import { height, width } from '@/voronoi/constants'
 
@@ -25,6 +26,7 @@ type Node = {
 	temperature: number
 	inland: number
 	humidity: number
+	biome: BiomeId
 	tile: Graphics
 	text: Text
 }
@@ -56,10 +58,10 @@ const debug = document.getElementById('debug') as HTMLSpanElement
 let input: ReturnType<typeof useInput>
 export const data = proxy<{
 	mode: 'line' | 'area'
-	view: 'cid' | 'height' | 'terrain' | 'temperature' | 'inland' | 'humidity'
+	view: 'cid' | 'height' | 'biome' | 'temperature' | 'inland' | 'humidity'
 }>({
 	mode: 'area',
-	view: 'humidity',
+	view: 'biome',
 })
 
 let delaunay: Delaunay<Node>
@@ -162,6 +164,12 @@ function start() {
 
 	console.log('humidity', `${performance.now() - time}ms`)
 
+	for (const node of nodes) {
+		node.biome = calculateBiome(node, maxHumidity)
+	}
+
+	console.log('biome', `${performance.now() - time}ms`)
+
 	// draw
 	drawTile()
 	onChange(data.view)
@@ -233,9 +241,9 @@ function onChange(view: typeof data.view) {
 				node.tile.tint = `hsl(0 0% ${node.height * 100}%)`
 				node.text.text = node.height.toFixed(3)
 				break
-			case 'terrain':
-				node.tile.tint = terrain(node.height, node.temperature)
-				node.text.text = node.height.toFixed(3)
+			case 'biome':
+				node.tile.tint = biome(node.biome)
+				node.text.text = biomeAbbreviation(node.biome)
 				break
 			case 'temperature':
 				node.tile.tint = temperature((node.temperature - tempMin) / (tempMax - tempMin))
